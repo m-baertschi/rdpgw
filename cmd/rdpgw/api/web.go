@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/bolkedebruin/rdpgw/cmd/rdpgw/security"
 )
 
 const (
@@ -84,6 +85,12 @@ func (c *Config) HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userInfo, err := security.OIDCProvider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
+	if err != nil {
+		http.Error(w, "Failed to get User Info: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	resp := struct {
 		OAuth2Token   *oauth2.Token
 		IDTokenClaims *json.RawMessage // ID Token payload is just JSON.
@@ -96,6 +103,13 @@ func (c *Config) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	var data map[string]interface{}
 	if err := json.Unmarshal(*resp.IDTokenClaims, &data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// append data from userInfo endpoint
+	err = userInfo.Claims(&data)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
