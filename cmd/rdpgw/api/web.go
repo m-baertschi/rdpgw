@@ -37,6 +37,7 @@ type Config struct {
 	OIDCTokenVerifier    *oidc.IDTokenVerifier
 	stateStore           *cache.Cache
 	Hosts                []string
+	RoundRobin           bool
 	GatewayAddress       string
 	UsernameTemplate     string
 	NetworkAutoDetect    int
@@ -153,9 +154,13 @@ func (c *Config) HandleDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// do a round robin selection for now
-	rand.Seed(time.Now().Unix())
-	host := c.Hosts[rand.Intn(len(c.Hosts))]
+	// if roundRobin is true pick random server otherwise pick first
+	var idx int
+	if c.RoundRobin {
+		rand.Seed(time.Now().Unix())
+		idx = rand.Intn(len(c.Hosts))
+	}
+	host := c.Hosts[idx]
 	host = strings.Replace(host, "{{ preferred_username }}", userName, 1)
 
 	// split the username into user and domain

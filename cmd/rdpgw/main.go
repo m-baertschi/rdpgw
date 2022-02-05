@@ -72,6 +72,7 @@ func main() {
 		SessionKey:           []byte(conf.Server.SessionKey),
 		SessionEncryptionKey: []byte(conf.Server.SessionEncryptionKey),
 		Hosts:                conf.Server.Hosts,
+		RoundRobin:           conf.Server.RoundRobin,
 		NetworkAutoDetect:    conf.Client.NetworkAutoDetect,
 		UsernameTemplate:     conf.Client.UsernameTemplate,
 		BandwidthAutoDetect:  conf.Client.BandwidthAutoDetect,
