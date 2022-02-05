@@ -1,8 +1,10 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type Configuration struct {
@@ -70,6 +72,15 @@ func init() {
 	viper.SetDefault("client.networkAutoDetect", 1)
 	viper.SetDefault("client.bandwidthAutoDetect", 1)
 	viper.SetDefault("security.verifyClientIp", true)
+
+	// set defaults so viper can find the env variables
+	viper.SetDefault("server.sessionkey", "")
+	viper.SetDefault("server.sessionencryptionkey", "")
+	viper.SetDefault("security.paatokensigningkey", "")
+	viper.SetDefault("security.paatokenencryptionkey", "")
+	viper.SetDefault("security.usertokenencryptionkey", "")
+	viper.SetDefault("security.usertokensigningkey", "")
+	viper.SetDefault("openId.clientSecret", "")
 }
 
 func Load(configFile string) Configuration {
@@ -79,6 +90,7 @@ func Load(configFile string) Configuration {
 	viper.SetConfigFile(configFile)
 	viper.AddConfigPath(".")
 	viper.SetEnvPrefix("RDPGW")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
