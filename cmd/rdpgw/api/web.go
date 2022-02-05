@@ -200,7 +200,15 @@ func (c *Config) HandleDownload(w http.ResponseWriter, r *http.Request) {
 	rand.Read(seed)
 	fn := hex.EncodeToString(seed) + ".rdp"
 
-	w.Header().Set("Content-Disposition", "attachment; filename="+fn)
+	userAgent := r.UserAgent()
+
+	// Firefox bug only allows automatically open option if type is inline
+	if strings.Contains(userAgent, "Firefox") {
+		w.Header().Set("Content-Disposition", "inline; filename="+fn)
+	} else {
+		w.Header().Set("Content-Disposition", "attachment; filename="+fn)
+	}
+
 	w.Header().Set("Content-Type", "application/x-rdp")
 	data := "full address:s:"+host+"\r\n"+
 		"gatewayhostname:s:"+c.GatewayAddress+"\r\n"+
