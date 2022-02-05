@@ -22,8 +22,9 @@ type ServerConfig struct {
 	RoundRobin           bool
 	SessionKey           string
 	SessionEncryptionKey string
-	SendBuf				 int
-	ReceiveBuf			 int
+	SendBuf              int
+	ReceiveBuf           int
+	ServeHTTPS           bool
 }
 
 type OpenIDConfig struct {
@@ -67,6 +68,7 @@ func init() {
 	viper.SetDefault("server.certFile", "server.pem")
 	viper.SetDefault("server.keyFile", "key.pem")
 	viper.SetDefault("server.port", 443)
+	viper.SetDefault("server.serveHTTPS", true)
 	viper.SetDefault("client.networkAutoDetect", 1)
 	viper.SetDefault("client.bandwidthAutoDetect", 1)
 	viper.SetDefault("security.verifyClientIp", true)

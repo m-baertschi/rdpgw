@@ -81,12 +81,9 @@ func main() {
 	}
 	api.NewApi()
 
-	if conf.Server.CertFile == "" || conf.Server.KeyFile == "" {
+	if conf.Server.ServeHTTPS && (conf.Server.CertFile == "" || conf.Server.KeyFile == "") {
 		log.Fatal("Both certfile and keyfile need to be specified")
 	}
-
-	//mux := http.NewServeMux()
-	//mux.HandleFunc("*", HelloServer)
 
 	log.Printf("Starting remote desktop gateway server")
 
@@ -99,17 +96,6 @@ func main() {
 		}
 		log.Printf("Key log file set to: %s", tlsDebug)
 		cfg.KeyLogWriter = w
-	}
-
-	cert, err := tls.LoadX509KeyPair(conf.Server.CertFile, conf.Server.KeyFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	cfg.Certificates = append(cfg.Certificates, cert)
-	server := http.Server{
-		Addr:      ":" + strconv.Itoa(conf.Server.Port),
-		TLSConfig: cfg,
-		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)), // disable http2
 	}
 
 	// create the gateway
@@ -141,7 +127,22 @@ func main() {
 	http.HandleFunc("/tokeninfo", api.TokenInfo)
 	http.HandleFunc("/callback", api.HandleCallback)
 
-	err = server.ListenAndServeTLS("", "")
+	if conf.Server.ServeHTTPS {
+		cert, err := tls.LoadX509KeyPair(conf.Server.CertFile, conf.Server.KeyFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cfg.Certificates = append(cfg.Certificates, cert)
+		server := http.Server{
+			Addr:         ":" + strconv.Itoa(conf.Server.Port),
+			TLSConfig:    cfg,
+			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)), // disable http2
+		}
+		err = server.ListenAndServeTLS("", "")
+	} else {
+		err = http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
+	}
+
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

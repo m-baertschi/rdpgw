@@ -41,6 +41,8 @@ template.
 ```yaml
 # web server configuration. 
 server:
+ # disables https for use behind a proxy
+ serveHTTPS: true
  # TLS certificate files (required)
  certFile: server.pem
  keyFile: key.pem
